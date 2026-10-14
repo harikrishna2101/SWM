@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Register')}"></head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+    <!-- Shared Navigation -->
+    <nav th:replace="~{fragments :: navbar}"></nav>
+
+    <!-- Main Content Container -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-10">
+
+                <div class="glass-card p-5 bg-white border border-light shadow-lg">
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center fs-2 mb-3" style="width: 70px; height: 70px;">
+                            <i class="bi bi-person-plus-fill"></i>
+                        </div>
+                        <h2 class="fw-bold mb-1">Citizen Registration</h2>
+                        <p class="text-muted">Create your account to immediately report and track roadside waste</p>
+                    </div>
+
+                    <!-- Error Alert -->
+                    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 animate-fade-in" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}">Error Message</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Registration Form -->
+                    <form th:action="@{/register}" th:object="${registerDto}" method="post" id="registerForm">
+                        <div class="row g-3">
+                            
+                            <!-- Full Name -->
+                            <div class="col-12">
+                                <label for="name" class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" th:field="*{name}" placeholder="John Doe" required>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error</div>
+                            </div>
+
+                            <!-- Email Address with Send OTP -->
+                            <div class="col-12">
+                                <label for="email" class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" class="form-control" id="email" th:field="*{email}" placeholder="john@example.com" required>
+                                    <button type="button" class="btn btn-outline-success fw-semibold px-3" id="sendOtpBtn" onclick="sendOtp()">
+                                        <i class="bi bi-send me-1"></i>Send OTP
+                                    </button>
+                                </div>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email error</div>
+                                <div id="emailErrorMsg" class="text-danger small mt-1" style="display: none;"></div>
+                            </div>
+
+                            <!-- OTP Verification Section -->
+                            <div class="col-12" id="otpSection" style="display: none;">
+                                <div class="p-3 bg-light rounded-3 border border-success shadow-xs">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <label for="otpInput" class="form-label fw-bold mb-0 text-success">
+                                            <i class="bi bi-shield-check me-1"></i>Enter 6-Digit OTP
+                                        </label>
+                                        <span id="countdownText" class="badge bg-secondary">Resend in 60s</span>
+                                    </div>
+                                    <p class="text-muted small mb-2">A verification code was sent to your email. Enter it below to verify:</p>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control text-center fw-bold fs-5 letter-spacing-2" id="otpInput" placeholder="••••••" maxlength="6" autocomplete="one-time-code">
+                                        <button type="button" class="btn btn-success fw-bold px-4" id="verifyOtpBtn" onclick="verifyOtp()">
+                                            <i class="bi bi-check-circle me-1"></i>Verify OTP
+                                        </button>
+                                    </div>
+                                    <div id="otpSuccessMsg" class="text-success small fw-bold" style="display: none;">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Email Verified Successfully! You can now create your account.
+                                    </div>
+                                    <div id="otpErrorMsg" class="text-danger small fw-semibold" style="display: none;">
+                                        <i class="bi bi-exclamation-circle-fill me-1"></i> <span id="otpErrorText">Invalid OTP. Please check and try again.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Phone Number -->
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="phone" th:field="*{phone}" placeholder="9876543210" required>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Phone error</div>
+                            </div>
+
+                            <!-- Physical Address -->
+                            <div class="col-md-6">
+                                <label for="address" class="form-label fw-semibold">Physical Address <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="address" th:field="*{address}" placeholder="Residential address..." required>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('address')}" th:errors="*{address}">Address error</div>
+                            </div>
+
+                            <!-- Password -->
+                            <div class="col-md-6">
+                                <label for="password" class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="password" th:field="*{password}" placeholder="At least 6 characters" required>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error</div>
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div class="col-md-6">
+                                <label for="confirmPassword" class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="confirmPassword" th:field="*{confirmPassword}" placeholder="Repeat password" required>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}">Confirmation error</div>
+                            </div>
+
+                            <!-- Role Selection (Hidden) -->
+                            <input type="hidden" id="role" name="role" value="ROLE_CITIZEN" />
+
+                            <!-- Submit Button -->
+                            <div class="col-12 mt-4">
+                                <button type="submit" id="createAccountBtn" class="btn btn-success w-100 rounded-pill py-3 fw-bold shadow-sm" disabled>
+                                    <i class="bi bi-lock-fill me-2" id="lockIcon"></i>Create Account
+                                </button>
+                                <div id="verificationNotice" class="text-center text-muted small mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>Please verify your email with the OTP to enable registration.
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Login Redirect -->
+                    <div class="text-center mt-4">
+                        <span class="text-muted">Already have an account?</span>
+                        <a th:href="@{/login}" class="text-success fw-bold text-decoration-none ms-1">Sign In Here</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- OTP Verification Script -->
+    <script>
+        let countdownInterval = null;
+
+        function getCsrfToken() {
+            const csrfInput = document.querySelector('input[name="_csrf"]');
+            return csrfInput ? csrfInput.value : '';
+        }
+
+        function sendOtp() {
+            const emailInput = document.getElementById('email');
+            const email = emailInput.value.trim();
+            const emailError = document.getElementById('emailErrorMsg');
+            const sendOtpBtn = document.getElementById('sendOtpBtn');
+
+            emailError.style.display = 'none';
+
+            if (!email || !email.includes('@')) {
+                emailError.innerText = 'Please enter a valid email address first.';
+                emailError.style.display = 'block';
+                emailInput.focus();
+                return;
+            }
+
+            sendOtpBtn.disabled = true;
+            sendOtpBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Sending...';
+
+            fetch('/send-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'email=' + encodeURIComponent(email) + '&_csrf=' + encodeURIComponent(getCsrfToken())
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(res => {
+                if (res.body.success) {
+                    document.getElementById('otpSection').style.display = 'block';
+                    document.getElementById('otpSuccessMsg').style.display = 'none';
+                    document.getElementById('otpErrorMsg').style.display = 'none';
+                    document.getElementById('otpInput').focus();
+                    startCountdown();
+                } else {
+                    emailError.innerText = res.body.message || 'Failed to send OTP. Please try again.';
+                    emailError.style.display = 'block';
+                    sendOtpBtn.disabled = false;
+                    sendOtpBtn.innerHTML = '<i class="bi bi-send me-1"></i> Send OTP';
+                }
+            })
+            .catch(err => {
+                emailError.innerText = 'Failed to connect to the server. Please try again.';
+                emailError.style.display = 'block';
+                sendOtpBtn.disabled = false;
+                sendOtpBtn.innerHTML = '<i class="bi bi-send me-1"></i> Send OTP';
+            });
+        }
+
+        function startCountdown() {
+            let seconds = 60;
+            const sendOtpBtn = document.getElementById('sendOtpBtn');
+            const countdownText = document.getElementById('countdownText');
+
+            countdownText.style.display = 'inline-block';
+            countdownText.innerText = `Resend in ${seconds}s`;
+            sendOtpBtn.disabled = true;
+
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                seconds--;
+                if (seconds > 0) {
+                    countdownText.innerText = `Resend in ${seconds}s`;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownText.style.display = 'none';
+                    sendOtpBtn.disabled = false;
+                    sendOtpBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Resend OTP';
+                }
+            }, 1000);
+        }
+
+        function verifyOtp() {
+            const email = document.getElementById('email').value.trim();
+            const otpInput = document.getElementById('otpInput');
+            const otp = otpInput.value.trim();
+            const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+            const otpSuccess = document.getElementById('otpSuccessMsg');
+            const otpError = document.getElementById('otpErrorMsg');
+            const otpErrorText = document.getElementById('otpErrorText');
+            const createAccountBtn = document.getElementById('createAccountBtn');
+            const lockIcon = document.getElementById('lockIcon');
+            const verificationNotice = document.getElementById('verificationNotice');
+
+            otpSuccess.style.display = 'none';
+            otpError.style.display = 'none';
+
+            if (!otp || otp.length < 4) {
+                otpErrorText.innerText = 'Please enter the 6-digit verification code.';
+                otpError.style.display = 'block';
+                otpInput.focus();
+                return;
+            }
+
+            verifyOtpBtn.disabled = true;
+            verifyOtpBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Verifying...';
+
+            fetch('/verify-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'email=' + encodeURIComponent(email) + '&otp=' + encodeURIComponent(otp) + '&_csrf=' + encodeURIComponent(getCsrfToken())
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(res => {
+                if (res.body.success) {
+                    otpSuccess.style.display = 'block';
+                    otpError.style.display = 'none';
+                    clearInterval(countdownInterval);
+                    document.getElementById('countdownText').style.display = 'none';
+
+                    // Lock email and OTP inputs
+                    document.getElementById('email').readOnly = true;
+                    otpInput.readOnly = true;
+                    document.getElementById('sendOtpBtn').style.display = 'none';
+                    verifyOtpBtn.style.display = 'none';
+
+                    // Enable Submit button
+                    createAccountBtn.disabled = false;
+                    lockIcon.className = 'bi bi-check-circle-fill me-2';
+                    verificationNotice.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-shield-fill-check me-1"></i>Email Verified! You can now create your account.</span>';
+                } else {
+                    otpErrorText.innerText = res.body.message || 'Invalid OTP. Please try again.';
+                    otpError.style.display = 'block';
+                    verifyOtpBtn.disabled = false;
+                    verifyOtpBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Verify OTP';
+                }
+            })
+            .catch(err => {
+                otpErrorText.innerText = 'Network error while verifying OTP.';
+                otpError.style.display = 'block';
+                verifyOtpBtn.disabled = false;
+                verifyOtpBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Verify OTP';
+            });
+        }
+    </script>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments :: footer}"></footer>
+
+</body>
+</html>
