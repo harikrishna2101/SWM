@@ -15,5 +15,5 @@ COPY --from=build /app/target/*.jar app.jar
 # Expose the application port
 EXPOSE 9035
 
-# Start the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Start the application with container-aware memory allocation (essential for cloud platforms like Render)
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
