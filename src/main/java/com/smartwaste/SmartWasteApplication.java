@@ -37,8 +37,17 @@ public class SmartWasteApplication {
                     value = value.substring(1, value.length() - 1);
                 }
 
-                if (System.getProperty(key) == null && System.getenv(key) == null) {
-                    System.setProperty(key, value);
+                if (key.isEmpty() || value.isEmpty()) {
+                    continue;
+                }
+
+                String currentProp = System.getProperty(key);
+                String currentEnv = System.getenv(key);
+
+                if (currentProp == null || currentProp.trim().isEmpty()) {
+                    if (currentEnv == null || currentEnv.trim().isEmpty()) {
+                        System.setProperty(key, value);
+                    }
                 }
             }
         } catch (IOException e) {
